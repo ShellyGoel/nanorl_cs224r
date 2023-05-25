@@ -9,6 +9,8 @@ import wandb
 import yaml
 from typing_extensions import get_origin
 import tensorboardX
+import jax
+import jax.experimental.global_device_array as gda
 
 T = TypeVar("T")
 

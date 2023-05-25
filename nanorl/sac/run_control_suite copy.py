@@ -7,15 +7,13 @@ from pathlib import Path
 from typing import Optional
 import dm_env
 import tyro
-#from dm_control import suite
-
-from robopianist import suite #ADDED
+from dm_control import suite
 
 from nanorl import replay, specs
 from nanorl import SAC, SACConfig
 from nanorl.infra import seed_rngs, Experiment, train_loop, eval_loop, wrap_env
 
-print("WE ARE RUNNING ROBOPIANIST WOOHOOOOOOO")
+
 @dataclass(frozen=True)
 class Args:
     # Experiment configuration.
@@ -64,12 +62,10 @@ class Args:
     mode: str = "online"
 
     # Task configuration.
-    domain_name: str = "robopianist" #"cartpole"
+    domain_name: str = "cartpole"
     """Which domain to use."""
-    task_name: str = "RoboPianist-debug-NocturneRousseau-v0"
+    task_name: str = "swingup"
     """Which task to use."""
-
-    #args.task_name = "RoboPianist-debug-NocturneRousseau-v0"
 
     # Environment wrapper configuration.
     frame_stack: int = 1
@@ -93,7 +89,7 @@ def main(args: Args) -> None:
     if args.name:
         run_name = args.name
     else:
-        run_name = f"SAC-{args.domain_name}-RoboPianist-debug-NocturneRousseau-v0-{args.seed}-{time.time()}"
+        run_name = f"SAC-{args.domain_name}-{args.task_name}-{args.seed}-{time.time()}"
 
     # Seed RNGs.
     seed_rngs(args.seed)
@@ -150,9 +146,9 @@ def main(args: Args) -> None:
 
     def env_fn(record_dir: Optional[Path] = None) -> dm_env.Environment:
         env = suite.load(
-            #domain_name=args.domain_name,
-            "RoboPianist-debug-NocturneRousseau-v0"#,
-            #task_kwargs=dict(random=args.seed),
+            domain_name=args.domain_name,
+            task_name=args.task_name,
+            task_kwargs=dict(random=args.seed),
         )
 
         return wrap_env(
