@@ -1,0 +1,51 @@
+# tyro YAML.
+!dataclass:Args
+action_reward_observation: false
+agent_config: !dataclass:SACConfig
+  activation: gelu
+  actor_lr: 0.0003
+  actor_utd_ratio: 1
+  backup_entropy: true
+  critic_dropout_rate: 0.01
+  critic_layer_norm: true
+  critic_lr: 0.0003
+  critic_utd_ratio: 1
+  hidden_dims:
+  - 256
+  - 256
+  init_temperature: 1.0
+  num_min_qs: null
+  num_qs: 2
+  target_entropy: null
+  tau: 0.005
+  temp_lr: 0.0003
+batch_size: 256
+camera_id: 0
+checkpoint_interval: 2500
+clip: true
+discount: 0.99
+domain_name: cartpole
+entity: ''
+eval_episodes: 10
+frame_stack: 1
+init_from_checkpoint: null
+log_interval: 1000
+max_steps: 1000
+mode: online
+name: ''
+notes: ''
+offline_dataset: null
+offline_pct: 0.5
+project: nanorl
+record_dir: null
+record_every: 1
+replay_capacity: 1000000
+reset_interval: 200000
+resets: false
+root_dir: results/
+seed: 42
+tags: ''
+task_name: swingup
+tqdm_bar: true
+use_wandb: true
+warmstart_steps: 5000
