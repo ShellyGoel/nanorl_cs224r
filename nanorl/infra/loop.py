@@ -8,6 +8,7 @@ from nanorl import agent, replay, specs
 
 from nanorl.infra import Experiment, utils
 
+import pdb
 
 EnvFn = Callable[[], dm_env.Environment]
 AgentFn = Callable[[dm_env.Environment], agent.Agent]
@@ -79,6 +80,7 @@ def eval_loop(
     num_episodes: int,
     max_steps: int,
 ) -> None:
+    print('in eval')
     env = env_fn()
     agent = agent_fn(env)
 
@@ -95,6 +97,8 @@ def eval_loop(
             print(f"Evaluating checkpoint at iteration {i}")
 
             # Eval!
+
+            break
             for _ in range(num_episodes):
                 timestep = env.reset()
                 while not timestep.last():
@@ -102,6 +106,7 @@ def eval_loop(
 
             # Log statistics.
             log_dict = utils.prefix_dict("eval", env.get_statistics())
+            print(f'in eval loop {env.get_statistics()}')
             experiment.log(log_dict, step=i)
 
             # Maybe log video.

@@ -7,13 +7,12 @@ from pathlib import Path
 from typing import Optional
 import dm_env
 import tyro
-from dm_control import suite
-
+from robopianist import suite
 from nanorl import replay, specs
 from nanorl import TD3, TD3Config
 from nanorl.infra import seed_rngs, Experiment, train_loop, eval_loop, wrap_env
 
-
+print("WE ARE RUNNING ROBOPIANIST TD3")
 @dataclass(frozen=True)
 class Args:
     # Experiment configuration.
@@ -52,6 +51,11 @@ class Args:
     offline_pct: float = 0.5
     """Percentage of offline data to use."""
 
+    song: str = "RoboPianist-debug-NocturneRousseau-v0"
+
+    stretch_val: float = 1.0
+    shift_val: int = 0
+
     # W&B configuration.
     use_wandb: bool = False
     project: str = "nanorl"
@@ -62,9 +66,9 @@ class Args:
     mode: str = "online"
 
     # Task configuration.
-    domain_name: str = "cartpole"
+    domain_name: str = "robopianist" #"cartpole"
     """Which domain to use."""
-    task_name: str = "swingup"
+    task_name: str = "RoboPianist-debug-NocturneRousseau-v0"
     """Which task to use."""
 
     # Environment wrapper configuration.
@@ -86,10 +90,21 @@ class Args:
 
 
 def main(args: Args) -> None:
+    song = args.song#"RoboPianist-debug-NocturneRousseau-v0"
+    print("THIS IS THE SONG: ", song)
+
+    stretch_val = args.stretch_val
+    shift_val = args.shift_val
+
+    print(stretch_val, shift_val)
+
+    # Choose from: 
+    # "RoboPianist-debug-NocturneRousseau-v0", "RoboPianist-debug-TwinkleTwinkleLittleStar-v0"
+    #'RoboPianist-debug-CMajorScaleTwoHands-v0',
     if args.name:
         run_name = args.name
     else:
-        run_name = f"TD3-{args.domain_name}-{args.task_name}-{args.seed}-{time.time()}"
+        run_name = f"SAC-{args.domain_name}-{song}-{args.seed}-{time.time()}"
 
     # Seed RNGs.
     seed_rngs(args.seed)
@@ -146,9 +161,12 @@ def main(args: Args) -> None:
 
     def env_fn(record_dir: Optional[Path] = None) -> dm_env.Environment:
         env = suite.load(
-            domain_name=args.domain_name,
-            task_name=args.task_name,
-            task_kwargs=dict(random=args.seed),
+            #domain_name=args.domain_name,
+            song, 
+            stretch=stretch_val, 
+            shift=shift_val
+            # "RoboPianist-debug-NocturneRousseau-v0"#,
+            #task_kwargs=dict(random=args.seed),
         )
 
         return wrap_env(

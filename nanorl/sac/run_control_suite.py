@@ -9,6 +9,8 @@ import dm_env
 import tyro
 #from dm_control import suite
 
+import pdb
+
 from robopianist import suite #ADDED
 
 from nanorl import replay, specs
@@ -54,6 +56,11 @@ class Args:
     offline_pct: float = 0.5
     """Percentage of offline data to use."""
 
+    song: str = "RoboPianist-debug-NocturneRousseau-v0"
+
+    stretch_val: float = 1.0
+    shift_val: int = 0
+
     # W&B configuration.
     use_wandb: bool = False
     project: str = "nanorl"
@@ -90,10 +97,21 @@ class Args:
 
 
 def main(args: Args) -> None:
+    song = args.song#"RoboPianist-debug-NocturneRousseau-v0"
+    print("THIS IS THE SONG: ", song)
+
+    stretch_val = args.stretch_val
+    shift_val = args.shift_val
+
+    print(stretch_val, shift_val)
+
+    # Choose from: 
+    # "RoboPianist-debug-NocturneRousseau-v0", "RoboPianist-debug-TwinkleTwinkleLittleStar-v0"
+    #'RoboPianist-debug-CMajorScaleTwoHands-v0',
     if args.name:
         run_name = args.name
     else:
-        run_name = f"SAC-{args.domain_name}-RoboPianist-debug-NocturneRousseau-v0-{args.seed}-{time.time()}"
+        run_name = f"SAC-{args.domain_name}-{song}-{args.seed}-{time.time()}"
 
     # Seed RNGs.
     seed_rngs(args.seed)
@@ -101,7 +119,7 @@ def main(args: Args) -> None:
     # Setup the experiment for checkpoints, videos, metadata, etc.
     experiment = Experiment(Path(args.root_dir) / run_name).assert_new()
     experiment.write_metadata("config", args)
-
+    
     if args.use_wandb:
         experiment.enable_wandb(
             project=args.project,
@@ -127,7 +145,7 @@ def main(args: Args) -> None:
             agent = ckpt_exp.restore_checkpoint(agent)
 
         return agent
-
+    # print('replay_fn')
     def replay_fn(env: dm_env.Environment) -> replay.ReplayBuffer:
         if args.offline_dataset is not None:
             offline_dataset = Path(args.offline_dataset)
@@ -147,11 +165,14 @@ def main(args: Args) -> None:
             offline_dataset=offline_dataset,
             offline_pct=args.offline_pct,
         )
-
+    # print('env_fn')
     def env_fn(record_dir: Optional[Path] = None) -> dm_env.Environment:
         env = suite.load(
             #domain_name=args.domain_name,
-            "RoboPianist-debug-NocturneRousseau-v0"#,
+            song, 
+            stretch=stretch_val, 
+            shift=shift_val
+            # "RoboPianist-debug-NocturneRousseau-v0"#,
             #task_kwargs=dict(random=args.seed),
         )
 
@@ -164,9 +185,9 @@ def main(args: Args) -> None:
             camera_id=args.camera_id,
             action_reward_observation=args.action_reward_observation,
         )
-
+    # print('pool')
     pool = futures.ThreadPoolExecutor(1)
-
+    # print('pool.submit')
     # Run training in a background thread.
     pool.submit(
         train_loop,
@@ -182,7 +203,7 @@ def main(args: Args) -> None:
         reset_interval=args.reset_interval,
         tqdm_bar=args.tqdm_bar,
     )
-
+    # print('eval loop')
     # Continuously monitor for checkpoints and evaluate.
     eval_loop(
         experiment=experiment,
@@ -191,6 +212,8 @@ def main(args: Args) -> None:
         num_episodes=args.eval_episodes,
         max_steps=args.max_steps,
     )
+    print('after eval loop')
+    pdb.set_trace()
 
     # Clean up.
     pool.shutdown()
